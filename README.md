@@ -28,12 +28,12 @@
 - Stężenie molowe
 - Masa molowa
 - Objętość molowa
-#### Zamiana jednostek
+#### Zamiana jednostek:
 - Kilometry na mile
 - Metry na stopy
 - Mile na kilometry
 - Stopy na metry
 - Farenheity na Celsjusze
 - Celsjusze na Farenheity
-#### Inne
+#### Inne:
 - Losowa liczba (tylko pełne liczby)
