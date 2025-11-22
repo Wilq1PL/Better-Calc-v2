@@ -3,7 +3,7 @@
 
 ### Robiony w Ms Visual Code
 
-### Dostębne wzory:
+### Dostępne wzory:
 - Dodawanie
 - Odejmowanie
 - Mnożenie
