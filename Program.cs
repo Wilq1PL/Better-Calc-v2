@@ -95,8 +95,6 @@ namespace BetterCalc
         const double Pi = Math.PI;
         const double G = 9.81; // przyspieszenie ziemskie
         const int ResultPrecision = 6; // liczba cyfr znaczących przy wyświetlaniu wyników
-        const double AvogadroNumber = 6.02214076e23; // liczba Avogadra
-        const float GasConstant = 8.314f; // stała gazowa J/(mol·K)
 
         static void Main(string[] args)
         {
@@ -112,7 +110,7 @@ namespace BetterCalc
 
         static void RunSession()
         {
-            Console.WriteLine("Better-Calc v" + Messages.Version + " by " + Messages.Author);
+            Console.WriteLine($"Better-Calc v{Messages.Version} by {Messages.Author}");
 
             while (true)
             {
@@ -158,7 +156,7 @@ namespace BetterCalc
                 }
 
                 Console.WriteLine(); // odstęp przed kolejnym przebiegiem
-                Thread.Sleep(2000); //Bez pauzy wynik od razu przesuwa się w góre przez co trudno go zauważyć 
+                Thread.Sleep(2000); // Bez pauzy wynik od razu przesuwa się w górę przez co trudno go zauważyć 
             }
         }
 
@@ -374,13 +372,12 @@ namespace BetterCalc
             };
         }
 
-        // Formatowanie wyniku z określoną precyzją
+        // Formatowanie wyniku z określoną precyzją (liczba cyfr znaczących)
         static string FormatResult(double value)
         {
-            // Zaokrąglij do ResultPrecision cyfr znaczących (przybliżenie)
             if (double.IsInfinity(value) || double.IsNaN(value)) return value.ToString(CultureInfo.InvariantCulture);
-            double rounded = Math.Round(value, ResultPrecision);
-            return rounded.ToString("G", CultureInfo.InvariantCulture);
+            // "G{n}" używa n jako liczby cyfr znaczących
+            return value.ToString($"G{ResultPrecision}", CultureInfo.InvariantCulture);
         }
 
         // Wczytuje liczbę; akceptuje:
