@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Runtime.Intrinsics.X86;
 
 // I am very sorry for using AI, but I am horible C# programmer
 
@@ -26,17 +27,25 @@ namespace BetterCalc
         Work,
         KineticEnergy,
         PotentialEnergy,
+        PercenageConcentration,
+        MolareConcentration,
+        MolareMass,
+        MolareVolume,
         KilometersToMiles,
+        MetersToFeet,
         MilesToKilometers,
+        FeetToMeters,
+        FarenheitToCelsius,
+        CelsiusToFarenheit,
+        RandomNum,
         Credits
     }
 
     static class Messages
     {
-        public const string Version = "3.1.0 C#";
+        public const string Version = "2.2.0";
         public const string Author = "Wilq1PL";
 
-        // Change 'static readonly' to 'static' to avoid ENC0118 error during Edit and Continue
         public static string[] MenuItems =
         {
             "Wyjście",
@@ -57,12 +66,21 @@ namespace BetterCalc
             "Praca",
             "Energia kinetyczna",
             "Energia potencjalna",
+            "Stężenie procentowe",
+            "Stężenie molowe",
+            "Masa molowa",
+            "Objętość molowa",
             "Kilometry na mile",
+            "Metry na stopy",
             "Mile na kilometry",
+            "Stopy na metry",
+            "Farenheity na Celsjusze",
+            "Celsjusze na Farenheity",
+            "Losowa liczba (tylko pełne liczby)",
             "Podziękowania"
         };
 
-        public static string PromptChoice(int max) => $"Wybierz tryb (0-{max}):";
+        public static string PromptChoice(int max) => $"\nWybierz tryb (0-{max}):";
         public const string InvalidChoice = "Nieprawidłowy wybór.";
         public const string EmptyInput = "Wejście nie może być puste. Spróbuj ponownie.";
         public const string InvalidNumber = "Nieprawidłowe dane: oczekiwana liczba lub ułamek. Spróbuj ponownie.";
@@ -74,8 +92,11 @@ namespace BetterCalc
     class Program
     {
         // Stałe i ustawienia
+        const double Pi = Math.PI;
         const double G = 9.81; // przyspieszenie ziemskie
-        const int ResultPrecision = 4; // liczba cyfr znaczących przy wyświetlaniu wyników
+        const int ResultPrecision = 6; // liczba cyfr znaczących przy wyświetlaniu wyników
+        const double AvogadroNumber = 6.02214076e23; // liczba Avogadra
+        const float GasConstant = 8.314f; // stała gazowa J/(mol·K)
 
         static void Main(string[] args)
         {
@@ -238,24 +259,98 @@ namespace BetterCalc
                         double height = ReadNumber("Podaj wysokość (m):");
                         return mass * G * height;
                     }
+                // Wzory chemiczne
+                case Mode.PercenageConcentration:
+                    {
+                        double solute = ReadPositiveNumber("Podaj masę substancji rozpuszczonej (g):");
+                        double solution = ReadPositiveNumber("Podaj masę roztworu (g):");
+                        if (solution < solute) throw new InvalidOperationException("Masa roztworu nie może być mniejsza od masy substancji rozpuszczonej.");
+                        return (solute / solution) * 100.0;
+                    }
+                case Mode.MolareConcentration:
+                    {
+                        double moles = ReadPositiveNumber("Podaj liczbę moli substancji (mol):");
+                        double volume = ReadPositiveNumber("Podaj objętość roztworu (L):");
+                        return moles / volume;
+                    }
+                case Mode.MolareMass:
+                    {
+                        double mass = ReadPositiveNumber("Podaj masę substancji (g):");
+                        double moles = ReadPositiveNumber("Podaj liczbę moli substancji (mol):");
+                        return mass / moles;
+                    }
+                case Mode.MolareVolume:
+                    {
+                        double volume = ReadPositiveNumber("Podaj objętość gazu (L):");
+                        double moles = ReadPositiveNumber("Podaj liczbę moli gazu (mol):");
+                        return volume / moles;
+                    }
+
+                // Konwersje jednostek
                 case Mode.KilometersToMiles:
                     {
                         double km = ReadPositiveNumber("Podaj odległość w kilometrach:");
                         return km * 0.621371;
+                    }
+                case Mode.MetersToFeet:
+                    {
+                        double meters = ReadPositiveNumber("Podaj odległość w metrach:");
+                        return meters * 3.28084;
                     }
                 case Mode.MilesToKilometers:
                     {
                         double miles = ReadPositiveNumber("Podaj odległość w milach:");
                         return miles / 0.621371;
                     }
+                case Mode.FeetToMeters:
+                    {
+                        double feet = ReadPositiveNumber("Podaj odległość w stopach:");
+                        return feet / 3.28084;
+                    }
+                case Mode.FarenheitToCelsius:
+                    {
+                        double f = ReadNumber("Podaj temperaturę w stopniach Farenheita:");
+                        return (f - 32) * 5.0 / 9.0;
+                    }
+                case Mode.CelsiusToFarenheit:
+                    {
+                        double c = ReadNumber("Podaj temperaturę w stopniach Celsjusza:");
+                        return (c * 9.0 / 5.0) + 32;
+                    }
+                // Inne
+                case Mode.RandomNum:
+                    {
+                        double min = ReadNumber("Podaj dolną granicę zakresu:");
+                        double max = ReadNumber("Podaj górną granicę zakresu:");
+                        if (max < min) throw new InvalidOperationException("Górna granica nie może być mniejsza od dolnej.");
+
+                        // convert to integer bounds
+                        int minInt = (int)Math.Ceiling(min);
+                        int maxInt = (int)Math.Floor(max);
+
+                        if (maxInt < minInt)
+                        {
+                            throw new InvalidOperationException("Po zaokrągleniu do liczb całkowitych nie ma dostępnych wartości w podanym przedziale.");
+                        }
+
+                        var rand = new Random();
+                        int r = rand.Next(minInt, maxInt + 1); // max is exclusive, so +1 to include maxInt
+                        return (double)r;
+                    }
+
+                // Podziękowania
                 case Mode.Credits:
                     {
-                        Console.WriteLine();
-                        Console.WriteLine("Podziękowania:");
-                        Console.WriteLine("Programowanie: " + Messages.Author + "z małą pomocą GitHub Copilot");
-                        Console.WriteLine("Wersja: " + Messages.Version);
-                        Console.WriteLine("Dziękuję za korzystanie z Better-Calc! Mam nadzieję, że już nigdy nie użyjesz swojego zwykłego kalkulatora.");
+                        Console.WriteLine(
+                            $"Better-Calc v + {Messages.Version}" +
+                            $"\nProgramowanie: {Messages.Author} z małą pomocą GitHub Copilot\n"
+                            );
+                        Console.WriteLine(
+                            "Dziękuję za korzystanie z Better-Calc! Mam nadzieję, że już nigdy nie użyjesz swojego zwykłego kalkulatora.\n" +
+                            "Jeśli masz sugestie lub chcesz zgłosić błąd, odwiedź repozytorium na GitHub."
+                            );
                         Console.WriteLine("Jeszcze raz , dziękuję <3");
+                        Console.ReadLine(); // Pauza, aby użytkownik mógł przeczytać podziękowania
                         return double.NaN;
                     }
                 default:
