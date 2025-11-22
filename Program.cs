@@ -174,12 +174,13 @@ namespace BetterCalc
         {
             switch (mode)
             {
+                // Podstawowe
                 case Mode.Add:
                 case Mode.Subtract:
                 case Mode.Multiply:
                 case Mode.Divide:
                     return HandleArithmetic(mode);
-
+                // Geometryczne
                 case Mode.SquareArea:
                     {
                         double side = ReadPositiveNumber("Podaj długość boku kwadrat:");
@@ -215,7 +216,7 @@ namespace BetterCalc
                         return 2 * Math.PI * r;
                     }
 
-                // Wzory fizyczne
+                // Fizykochemiczne
                 case Mode.Density:
                     {
                         double mass = ReadPositiveNumber("Podaj masę (kg):");
@@ -259,7 +260,6 @@ namespace BetterCalc
                         double height = ReadNumber("Podaj wysokość (m):");
                         return mass * G * height;
                     }
-                // Wzory chemiczne
                 case Mode.PercenageConcentration:
                     {
                         double solute = ReadPositiveNumber("Podaj masę substancji rozpuszczonej (g):");
