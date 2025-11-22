@@ -1,4 +1,5 @@
-﻿using System;
+﻿// Copyright (c) Wilq1PL. All rights reserved.
+using System;
 using System.Globalization;
 using System.Threading;
 
@@ -36,13 +37,16 @@ namespace BetterCalc
         FeetToMeters,
         FarenheitToCelsius,
         CelsiusToFarenheit,
+        HoursToSeconds,
+        SecondsToHours,
+
         RandomNum,
         Credits
     }
 
     static class Messages
     {
-        public const string Version = "2.2.0";
+        public const string Ver = "2.2.1";
         public const string Author = "Wilq1PL";
 
         public static string[] MenuItems =
@@ -75,6 +79,9 @@ namespace BetterCalc
             "Stopy na metry",
             "Farenheity na Celsjusze",
             "Celsjusze na Farenheity",
+            "Godziny na sekundy",
+            "Sekundy na godziny",
+
             "Losowa liczba (tylko pełne liczby)",
             "Podziękowania"
         };
@@ -86,6 +93,21 @@ namespace BetterCalc
         public const string InvalidFractionFormat = "Nieprawidłowy format ułamka. Użyj a/b lub liczba i ułamek mieszany '1 3/4'.";
         public const string DenominatorZero = "Błąd: mianownik nie może być zero.";
         public const string MustBePositive = "Wartość musi być większa od zera. Spróbuj ponownie.";
+
+        // Farewell messages used when quitting (selected by predefined ranges)
+        public static string[] FarewellMessages =
+        {
+            "Do widzenia!", //1
+            "Do zobaczenia", //2
+            "Miłego dnia!", //3
+            "Na razie — dzięki za używanie Better-Calc! v2", //3
+            "Pa pa! <3", //4
+            "Nie zapomnij o nie używaniu zwykłego kalkulatora", //5
+            "Będę tęsknił ;)", //6
+            "Żegnaj! Pamiętaj, że Better-Calc zawsze tu na Ciebie czeka.", //7
+            "Ta wiadomość pożęgnalna definitywnie nie była napisana przez sztuczną inteligencje", //8
+            "Pamiętaj, że jedynym lepszym kalkulatorem niż Better-Calc jest (a przynajmniej powinien być) twój mózg!!!" //9
+        };
     }
 
     class Program
@@ -112,7 +134,8 @@ namespace BetterCalc
 
         static void RunSession()
         {
-            Console.WriteLine($"Better-Calc v{Messages.Version} by {Messages.Author}");
+            Console.WriteLine($"Copyright (c) Wilq1PL. All rights reserved.\nBetter-Calc v{Messages.Ver} by {Messages.Author}");
+            Thread.Sleep(2000);
 
             while (true)
             {
@@ -130,7 +153,12 @@ namespace BetterCalc
 
                 if (choiceNum == (int)Mode.Quit)
                 {
-                    Console.WriteLine("Koniec programu.");
+                    // opcja druga: wybieramy wiadomość pożegnalną na podstawie zakresu losowej liczby
+                    int randNum = Rand.Next(0, 1000); // 0..99
+                    string farewell = GetFarewellByRange(randNum);
+
+                    Console.WriteLine();
+                    Console.WriteLine(farewell);
                     return;
                 }
 
@@ -141,8 +169,16 @@ namespace BetterCalc
                     // jeśli handler zwróci NaN, to oznacza, że już wypisał komunikat (np. błąd)
                     if (!double.IsNaN(result))
                     {
+                        // append units for time conversions
+                        string unit = mode switch
+                        {
+                            Mode.HoursToSeconds => " s",
+                            Mode.SecondsToHours => " h",
+                            _ => ""
+                        };
+
                         Console.WriteLine();
-                        Console.WriteLine("Wynik: " + FormatResult(result));
+                        Console.WriteLine("Wynik: " + FormatResult(result) + unit);
                     }
                 }
                 catch (OperationCanceledException)
@@ -160,6 +196,35 @@ namespace BetterCalc
                 Console.WriteLine(); // odstęp przed kolejnym przebiegiem
                 Thread.Sleep(2000); // Bez pauzy wynik od razu przesuwa się w górę przez co trudno go zauważyć 
             }
+        }
+
+        // Wybiera wiadomość pożegnalną na podstawie przedziału wartości losowej
+        static string GetFarewellByRange(int n)
+        {
+            // Przykładowy podział zakresów 0..99:
+            // 0-9   => message 0 (10%)
+            // 10-29 => message 1 (20%)
+            // 30-49 => message 2 (20%)
+            // 50-69 => message 3 (20%)
+            // 70-84 => message 4 (15%)
+            // 85-94 => message 5 (10%)
+            // 95-99 => message 6 (5%)
+            // 95-99 => message 7 (5%)
+            // 95-99 => message 8 (5%)
+            // 95-99 => message  (5%)
+            return n switch
+            {
+                var x when x < 111 => Messages.FarewellMessages[0],
+                var x when x < 222 => Messages.FarewellMessages[1],
+                var x when x < 333 => Messages.FarewellMessages[2],
+                var x when x < 444 => Messages.FarewellMessages[3],
+                var x when x < 555 => Messages.FarewellMessages[4],
+                var x when x < 666 => Messages.FarewellMessages[5],
+                var x when x < 777 => Messages.FarewellMessages[6],
+                var x when x < 888 => Messages.FarewellMessages[7],
+                var x when x < 999 => Messages.FarewellMessages[8],
+                _ => Messages.FarewellMessages[9]
+            };
         }
 
         static void DisplayMenu()
@@ -317,6 +382,16 @@ namespace BetterCalc
                         double c = ReadNumber("Podaj temperaturę w stopniach Celsjusza:");
                         return (c * 9.0 / 5.0) + 32;
                     }
+                case Mode.HoursToSeconds:
+                    {
+                        double hours = ReadPositiveNumber("Podaj czas w godzinach:");
+                        return hours * 3600.0;
+                    }
+                case Mode.SecondsToHours:
+                    {
+                        double seconds = ReadPositiveNumber("Podaj czas w sekundach:");
+                        return seconds / 3600.0;
+                    }
                 // Inne
                 case Mode.RandomNum:
                     {
@@ -341,8 +416,9 @@ namespace BetterCalc
                 case Mode.Credits:
                     {
                         Console.WriteLine(
-                            $"Better-Calc v + {Messages.Version}" +
-                            $"\nProgramowanie: {Messages.Author} z małą pomocą GitHub Copilot\n"
+                            "\n\nCopyright (c) Wilq1PL. All rights reserved.\n" +
+                            $"Better-Calc v + {Messages.Ver}\n" +
+                            $"Programowanie: {Messages.Author} z małą pomocą GitHub Copilot\n"
                             );
                         Console.WriteLine(
                             "Dziękuję za korzystanie z Better-Calc! Mam nadzieję, że już nigdy nie użyjesz swojego zwykłego kalkulatora.\n" +
