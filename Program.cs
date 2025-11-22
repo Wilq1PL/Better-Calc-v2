@@ -1,7 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Runtime.Intrinsics.X86;
+using System.Threading;
 
 // I am very sorry for using AI, but I am horible C# programmer
 
@@ -95,6 +94,9 @@ namespace BetterCalc
         const double Pi = Math.PI;
         const double G = 9.81; // przyspieszenie ziemskie
         const int ResultPrecision = 6; // liczba cyfr znaczących przy wyświetlaniu wyników
+
+        // Wspólny generator losowych liczb (unikamy wielokrotnego seedowania)
+        static readonly Random Rand = new Random();
 
         static void Main(string[] args)
         {
@@ -331,8 +333,7 @@ namespace BetterCalc
                             throw new InvalidOperationException("Po zaokrągleniu do liczb całkowitych nie ma dostępnych wartości w podanym przedziale.");
                         }
 
-                        var rand = new Random();
-                        int r = rand.Next(minInt, maxInt + 1); // max is exclusive, so +1 to include maxInt
+                        int r = Rand.Next(minInt, maxInt + 1); // max is exclusive, so +1 to include maxInt
                         return (double)r;
                     }
 
