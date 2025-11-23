@@ -310,7 +310,7 @@ namespace BetterCalc
                 case Mode.Work:
                     {
                         double force = ReadNumber("Podaj siłę (N):");
-                        double distance = ReadNumber("Podaj odległość (m):");
+                        double distance = ReadNumber("Podaj przesunięcie (m):");
                         return force * distance;
                     }
                 case Mode.KineticEnergy:
